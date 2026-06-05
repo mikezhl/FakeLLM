@@ -1,21 +1,24 @@
-# React + TypeScript + Vite + shadcn/ui
+# FakeLLM
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+小型假 OpenAI / Anthropic 接口服务，固定返回预设内容，并在前端查看收到的请求。用于查看请求内容信息，了解agents运行原理。
 
-## Adding components
+## 运行
 
-To add components to your app, run the following command:
-
-```bash
-npx shadcn@latest add button
+```powershell
+pnpm install
+pnpm dev
 ```
 
-This will place the ui components in the `src/components` directory.
+默认地址：`http://127.0.0.1:8787`
 
-## Using components
+## 接口
 
-To use the components in your app, import them as follows:
+- `POST /v1/chat/completions`
+- `POST /v1/responses`
+- `POST /v1/messages`
+- `POST /v1/messages/count_tokens`
+- `GET /v1/models`
+- `GET /api/requests`
+- `DELETE /api/requests`
 
-```tsx
-import { Button } from "@/components/ui/button"
-```
+`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 都支持 `stream: true`。

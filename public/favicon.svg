@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <style>
+    .minimal-f {
+      fill: #000000;
+    }
+    @media (prefers-color-scheme: dark) {
+      .minimal-f {
+        fill: #ffffff;
+      }
+    }
+  </style>
+  <!-- Minimalist bold geometric letter 'F' -->
+  <path class="minimal-f" d="M32 15h38v12H46v17h22v12H46v29H32Z" />
+</svg>

@@ -4,12 +4,13 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node server.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview"
+    "start": "node server.mjs --prod",
+    "preview": "node server.mjs --prod"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
