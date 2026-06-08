@@ -274,16 +274,19 @@ function makeResponse(body) {
   const suffix = randomUUID().replaceAll("-", "")
   const model = getModel(body)
   const completionTokens = estimateTokens(DEFAULT_REPLY)
+  const createdAt = Math.floor(Date.now() / 1000)
 
   return {
     id: `resp_${suffix}`,
     object: "response",
-    created_at: Math.floor(Date.now() / 1000),
+    created_at: createdAt,
+    completed_at: createdAt,
     status: "completed",
     background: false,
     error: null,
     incomplete_details: null,
     instructions: null,
+    metadata: {},
     max_output_tokens: null,
     model,
     output: [
@@ -439,11 +442,23 @@ async function streamResponse(res, responseBody) {
   sendSseHeaders(res)
 
   let sequenceNumber = 0
+  const outputItem = responseBody.output[0]
+  const contentPart = outputItem.content[0]
   const inProgressResponse = {
     ...responseBody,
+    completed_at: null,
     status: "in_progress",
     output: [],
     output_text: "",
+  }
+  const inProgressOutputItem = {
+    ...outputItem,
+    status: "in_progress",
+    content: [],
+  }
+  const emptyContentPart = {
+    ...contentPart,
+    text: "",
   }
 
   writeSseEvent(res, "response.created", {
@@ -451,12 +466,32 @@ async function streamResponse(res, responseBody) {
     sequence_number: sequenceNumber++,
     response: inProgressResponse,
   })
+  writeSseEvent(res, "response.in_progress", {
+    type: "response.in_progress",
+    sequence_number: sequenceNumber++,
+    response: inProgressResponse,
+  })
+  writeSseEvent(res, "response.output_item.added", {
+    type: "response.output_item.added",
+    sequence_number: sequenceNumber++,
+    output_index: 0,
+    item: inProgressOutputItem,
+  })
+  writeSseEvent(res, "response.content_part.added", {
+    type: "response.content_part.added",
+    sequence_number: sequenceNumber++,
+    item_id: outputItem.id,
+    output_index: 0,
+    content_index: 0,
+    part: emptyContentPart,
+  })
 
   for (const char of Array.from(DEFAULT_REPLY)) {
     await sleep(STREAM_DELAY_MS)
     writeSseEvent(res, "response.output_text.delta", {
       type: "response.output_text.delta",
       sequence_number: sequenceNumber++,
+      item_id: outputItem.id,
       output_index: 0,
       content_index: 0,
       delta: char,
@@ -467,9 +502,24 @@ async function streamResponse(res, responseBody) {
   writeSseEvent(res, "response.output_text.done", {
     type: "response.output_text.done",
     sequence_number: sequenceNumber++,
+    item_id: outputItem.id,
     output_index: 0,
     content_index: 0,
     text: DEFAULT_REPLY,
+  })
+  writeSseEvent(res, "response.content_part.done", {
+    type: "response.content_part.done",
+    sequence_number: sequenceNumber++,
+    item_id: outputItem.id,
+    output_index: 0,
+    content_index: 0,
+    part: contentPart,
+  })
+  writeSseEvent(res, "response.output_item.done", {
+    type: "response.output_item.done",
+    sequence_number: sequenceNumber++,
+    output_index: 0,
+    item: outputItem,
   })
   writeSseEvent(res, "response.completed", {
     type: "response.completed",
